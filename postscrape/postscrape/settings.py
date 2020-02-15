@@ -9,6 +9,8 @@
 #     https://docs.scrapy.org/en/latest/topics/downloader-middleware.html
 #     https://docs.scrapy.org/en/latest/topics/spider-middleware.html
 
+FEED_EXPORT_ENCODING = 'utf-8'
+
 BOT_NAME = 'postscrape'
 
 SPIDER_MODULES = ['postscrape.spiders']
@@ -65,7 +67,7 @@ ROBOTSTXT_OBEY = True
 # Configure item pipelines
 # See https://docs.scrapy.org/en/latest/topics/item-pipeline.html
 #ITEM_PIPELINES = {
-#    'postscrape.pipelines.PostscrapePipeline': 300,
+#    'postscrape.pipelines.PostscrapePipeline', #MongoDB
 #}
 
 # Enable and configure the AutoThrottle extension (disabled by default)

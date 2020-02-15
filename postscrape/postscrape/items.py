@@ -11,4 +11,9 @@ import scrapy
 class PostscrapeItem(scrapy.Item):
     # define the fields for your item here like:
     # name = scrapy.Field()
+
+    Title = scrapy.Field()
+    Date = scrapy.Field()
+    Author = scrapy.Field()
+
     pass
