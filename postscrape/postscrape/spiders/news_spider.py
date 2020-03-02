@@ -1,16 +1,14 @@
 import scrapy
 import sys
 import html2text 
-
 import pymongo
 import dns #required for connecting with SRV
-
-import collections
+#import collections
 import nltk
-#from tags import tags
+#from My_spliter import My_spliter
 from nltk.stem import WordNetLemmatizer
 
-################################################## My_spliter#########################################
+################################################## My_spliter() #########################################
 def My_spliter (a):
     l = []
     for word in a.lower().split():
@@ -35,9 +33,9 @@ def My_spliter (a):
         word = wnl.lemmatize(word)
         l.append(word)
     return l
-###################################################################################################### 
+################################################## End My_spliter()########################################## 
 
-######################################### index_generator ######################################################################
+################################################### index_generator ######################################################################
 stopwords = "ourselves hers between yourself but almost may would again there about once during out very having with hi ha they own an be some for do its yours such into of most itself other off is s am or who as from him each the themselves until below are we these your his through don nor me were her more himself this down should our their while above both up to ours had she all no when at any before them same and been have in will on does yourselves then that because what over why so can did not now under he you herself has ha just where too only myself which those i after few whom t being if theirs my against a by doing it how further was wa here than also said could – _ - "
 stopwords = stopwords.split()
 wnl = WordNetLemmatizer()
@@ -67,46 +65,44 @@ def tags(a):
     return myIdx
         #print(word, ": ", count)
         #yield word,count
-######################################################### Fin index_generator() ##########################################################
+######################################################### End index_generator() ##########################################################
 
+########################################################## Principal class ############################################################
 class MySpider(scrapy.Spider):
-    name = 'testing'
+    name = 'guardian'
     #allowed_domains = ['theguardian.com']
 
     catg = ''
-    
-
-    def __init__(self, category=None, *args, **kwargs):
+    limit = 2
+    #categories = ["world","environment","science","cities","global-development","football","technology","business"]
+    def __init__(self, category=None, pgLimit=2, *args, **kwargs):
         super(MySpider, self).__init__(*args, **kwargs)
         self.start_urls = ['https://www.theguardian.com/%s?page=1' % category]
         global catg 
         catg = category
-    ################################################# establish the connection to mongodb ##############################################
-        cnx = pymongo.MongoClient("mongodb+srv://CHEA:started@mycluster-uykvf.azure.mongodb.net/GemoDB?retryWrites=true&w=majority")
+
+        global limit
+        limit = pgLimit
+    ############################################### establish the connection to mongodb ############################################
+        cnx = pymongo.MongoClient("mongodb+srv://guest:guest@mycluster-uykvf.azure.mongodb.net/GemoDB?retryWrites=true&w=majority")
         db = cnx['GemoDB']
         global collc
         collc = db[catg]
     ####################################################################################################################################
 
-
-    #categories = ["world","environment","science","cities","global-development","football","technology","business"]
-    #start_urls = [
-    #                'https://www.theguardian.com/science?page=1'
-    #            ]
-
     def parse(self, response):
-        #Use htmt2text to get the plain text
+        #htmt2text to get the plain text
         converter = html2text.HTML2Text()
         converter.ignore_links = True
         
-        if  response.css('h1::text').get() != ' ':
+        if response.css('div.content__article-body p').extract() != [] :
             #Get informations relevant to the news story
             h_title = ((converter.handle(str(response.css('h1').get())).replace("#", '').strip()).replace("\n\n", '')).replace("\n", ' ')
             h_date = response.css('time::text').get()
-            h_author = response.css('div.meta__contact-wrap p').extract_first()
+            h_author = response.css('div.meta__contact-wrap p.byline').extract_first()
             h_body = response.css('div.content__article-body p').extract()
             Content_tags = tags(((str((converter.handle(str(h_body))).strip())).replace("\n\n",'')).replace("\n",' ').replace("[]",''))
-            #title_tags = []
+
             stopwords.extend(Content_tags)
             splited_title = My_spliter(h_title)
             for word in splited_title:
@@ -122,17 +118,17 @@ class MySpider(scrapy.Spider):
             'Content' : ((str((converter.handle(str(h_body))).strip())).replace("\n\n",'')).replace("\n",' '),
             'Content_tags' : Content_tags
             }
-            yield article
-            #collc.insert_one(article)        
+            #yield article
+            collc.insert_one(article)        
         #response.xpath('//a[@class="u-faux-block-link__overlay js-headline-text"]/@href').extract() or response.css('a.u-faux-block-link__overlay.js-headline-text::attr(href)').getall()
         for article_url in response.css('section.fc-container.fc-container--tag a.u-faux-block-link__overlay.js-headline-text::attr(href)').getall():
             yield scrapy.Request(response.urljoin(article_url), self.parse)
         
         
-        #next_page = response.css('a.button.button--small.button--tertiary.pagination__action--static[rel="next"]::attr(href)').get()
-        #if next_page == ('https://www.theguardian.com/%s?page=101' % catg):
-        #    sys.exit("Limit reached !")
-        #yield scrapy.Request(response.urljoin(next_page), self.parse)
-             
+        next_page = response.css('a.button.button--small.button--tertiary.pagination__action--static[rel="next"]::attr(href)').get()
+        if next_page == ('https://www.theguardian.com/%s?page=%s' % (catg, limit)):
+            sys.exit("Limit reached !")
+        yield scrapy.Request(response.urljoin(next_page), self.parse)
+########################################################## End Principal class ############################################################
 #testing1.json: For performance reasons, document symbols have been limited to 5000 items.
 #Use setting 'json.maxItemsComputed' to configure the limit.
