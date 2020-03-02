@@ -3,7 +3,7 @@ import sys
 import html2text 
 import pymongo
 import dns #required for connecting with SRV
-#import collections
+import collections
 import nltk
 #from My_spliter import My_spliter
 from nltk.stem import WordNetLemmatizer
