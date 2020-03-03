@@ -26,6 +26,7 @@ pip install nltk
 ```
 
 ## Usage
+**Please make sure you have good internet connection** (to avoid speed issues).
 - Run your terminal.
 - Navigate (change directory) to the *Collect_Store_Search\postscrape\postscrape* folder.
 - Type the command :
