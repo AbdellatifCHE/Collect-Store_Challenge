@@ -8,8 +8,8 @@ db = cnx['GemoDB']
 
 categories = ["world","environment","science","cities","global-development","football","technology","business"]
 
-keywords = input("What do you want to search for ?\n")
-keywords = My_spliter(keywords)
+keybord = input("What do you want to search for ?\n")
+keywords = My_spliter(keybord)
 resp = []
 #Create an index for the collection
 def api():
@@ -24,12 +24,18 @@ def api():
     return resp
 
 resp = api()
-#Create a file to store the search results
-f= open("search_results.txt","w+")
-f.write("Search results:\n")
-for doc in resp:
-    f.write("Title: %s, " % doc['Title'])
-    f.write("Date: %s, " % doc['Date'])
-    f.write("Author(s): %s, " % doc['Author(s)'])
-    f.write("URL: %s \n" % doc['URL'])
-f.close()
+
+if resp == []:
+    print("\n\nSorry, there are no results for: '%s'" % keybord)
+    print("Suggestions : \n\t *Make sure that all words are spelled correctly.\n\t *Try different keywords.\n\t *Try more general keywords.")
+else:
+    #Create a file to store the search results
+    f= open("search_results.txt","w+")
+    f.write("Search results:\n")
+    for doc in resp:
+        f.write("Title: %s, " % doc['Title'])
+        f.write("Date: %s, " % doc['Date'])
+        f.write("Author(s): %s, " % doc['Author(s)'])
+        f.write("URL: %s \n" % doc['URL'])
+    f.close()
+    print("\n >>>>>>>> See your search results in the 'search_results.txt' file !")
